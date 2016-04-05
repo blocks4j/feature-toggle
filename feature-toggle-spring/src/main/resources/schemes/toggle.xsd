@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns="http://afiliados.uol.com.br/springbeans/toggle"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:beans="http://www.springframework.org/schema/beans"
+            targetNamespace="http://afiliados.uol.com.br/springbeans/toggle"
+            elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+    <xsd:import namespace="http://www.springframework.org/schema/beans"
+                schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"/>
+    <xsd:element name="toggle">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <!-- Here we re-use Spring elements and attributes -->
+                <xsd:extension base="beans:identifiedType">
+                    <xsd:attribute name="feature-name" type="xsd:string" use="required"/>
+                    <xsd:attribute name="common-interface" type="xsd:string" use="required"/>
+                    <xsd:attribute name="on-class" type="xsd:string" use="optional"/>
+                    <xsd:attribute name="off-class" type="xsd:string" use="optional"/>
+                    <xsd:attribute name="on-ref" type="xsd:string" use="optional"/>
+                    <xsd:attribute name="off-ref" type="xsd:string" use="optional"/>
+                    <xsd:attribute name="configuration-ref" type="xsd:string" use="prohibited"/>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>
