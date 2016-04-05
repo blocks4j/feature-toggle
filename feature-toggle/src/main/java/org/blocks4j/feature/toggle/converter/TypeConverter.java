@@ -17,6 +17,7 @@
 package org.blocks4j.feature.toggle.converter;
 
 
+import com.google.common.primitives.Primitives;
 import org.blocks4j.feature.toggle.exception.FeatureToggleDefinitionParsingException;
 
 public final class TypeConverter {
@@ -28,11 +29,14 @@ public final class TypeConverter {
         if (value.getClass() == clazz) {
             return value;
         }
+
+        if (clazz.isPrimitive()) {
+            clazz = Primitives.wrap(clazz);
+        }
+
         Object result = value;
         try {
-            if (clazz.isPrimitive()) {
-                result = this.convertToPrimitive(value, clazz);
-            } else if (clazz == Long.class) {
+            if (clazz == Long.class) {
                 result = Long.parseLong(value);
             } else if (clazz == Integer.class) {
                 result = Integer.parseInt(value);
@@ -59,32 +63,6 @@ public final class TypeConverter {
         }
 
         return result;
-    }
-
-    private Object convertToPrimitive(String value, Class<?> clazz) {
-        Object convertedObject = null;
-        if (clazz == long.class) {
-            convertedObject = Long.parseLong(value);
-        } else if (clazz == int.class) {
-            convertedObject = Integer.parseInt(value);
-        } else if (clazz == short.class) {
-            convertedObject = Short.parseShort(value);
-        } else if (clazz == byte.class) {
-            convertedObject = Byte.parseByte(value);
-        } else if (clazz == double.class) {
-            convertedObject = Double.parseDouble(value);
-        } else if (clazz == float.class) {
-            convertedObject = Float.parseFloat(value);
-        } else if (clazz == char.class) {
-            if (value.length() > 1) {
-                throw new RuntimeException(String.format("The String '%s' cannot be converted to java.lang.Character type.", value));
-            }
-            convertedObject = value.charAt(0);
-        } else if (clazz == boolean.class) {
-            convertedObject = Boolean.parseBoolean(value);
-        }
-
-        return convertedObject;
     }
 
 }

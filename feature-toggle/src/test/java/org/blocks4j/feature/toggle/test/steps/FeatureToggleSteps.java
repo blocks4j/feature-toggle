@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package org.blocks4j.feature.toggle.test;
+package org.blocks4j.feature.toggle.test.steps;
 
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
@@ -23,6 +23,9 @@ import cucumber.api.java.en.When;
 import org.apache.commons.lang3.StringUtils;
 import org.blocks4j.feature.toggle.FeatureToggleConfiguration;
 import org.blocks4j.feature.toggle.factory.FeatureToggleFactory;
+import org.blocks4j.feature.toggle.test.config.TestingFeatureToggleConfiguration;
+import org.blocks4j.feature.toggle.test.domain.OperationParameter;
+import org.blocks4j.feature.toggle.test.domain.TestingFeature;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
@@ -122,12 +125,12 @@ public class FeatureToggleSteps {
 
     }
 
-    @When("^the service is called with class parameter \"([^\"]*)\"$")
-    public void theServiceIsCalledWithClassParameter(String parameter) throws Throwable {
-        this.featureImplementation.operation(new OperationParameter(parameter));
+    @When("^the service is called with complex parameter \"([^\"]*)\" and \"([^\"]*)\"$")
+    public void theServiceIsCalledWithClassParameter(int parameterField, Long parameterMethod) throws Throwable {
+        this.featureImplementation.operation(new OperationParameter(parameterField, parameterMethod));
     }
 
-    @When("^the service is called with parameter \"([^\"]*)\"$")
+    @When("^the service is called with primitive parameter \"([^\"]*)\"$")
     public void theServiceIsCalledWithParameter(String parameter) throws Throwable {
         this.featureImplementation.operation(parameter);
     }

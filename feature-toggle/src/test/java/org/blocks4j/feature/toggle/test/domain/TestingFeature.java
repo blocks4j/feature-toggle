@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package org.blocks4j.feature.toggle.test;
+package org.blocks4j.feature.toggle.test.domain;
 
 import org.blocks4j.feature.toggle.annotation.parameters.ParameterToggle;
 
@@ -22,6 +22,6 @@ public interface TestingFeature {
 
     void operation(OperationParameter operationParameter);
 
-    void operation(@ParameterToggle("paramTest") String operationParameter);
+    void operation(@ParameterToggle("paramTestPrimitive") String operationParameter);
 
 }

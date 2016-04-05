@@ -16,50 +16,49 @@
 
 package org.blocks4j.feature.toggle.domain;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public class TogglableParameter {
+public class TogglableParameter<T> {
+    public enum AccessMethod {DIRECT, FIELD, METHOD}
 
-    private Integer paramIndex;
+    private int index;
     private String id;
-    private Method methodGetField;
+    private T accessibleObject;
+    private AccessMethod accessMethod;
 
-    public TogglableParameter(Integer paramIndex, String id, Method methodGetField) {
-        this.methodGetField = methodGetField;
-        this.paramIndex = paramIndex;
+    private TogglableParameter(int index, String id, T accessibleObject, AccessMethod accessMethod) {
+        this.index = index;
         this.id = id;
+        this.accessibleObject = accessibleObject;
+        this.accessMethod = accessMethod;
     }
 
-    public TogglableParameter(Integer paramIndex, String id) {
-        this.paramIndex = paramIndex;
-        this.id = id;
+    public static TogglableParameter<?> createTogglableParameter(int index, String id) {
+        return new TogglableParameter<>(index, id, null, AccessMethod.DIRECT);
     }
 
-    public Integer getIndex() {
-        return this.paramIndex;
+    public static TogglableParameter<Field> createTogglableParameter(int index, String id, Field field) {
+        return new TogglableParameter<>(index, id, field, AccessMethod.FIELD);
     }
 
-    public boolean isAnnotatedOnField() {
-        return (this.methodGetField == null) ? false : true;
+    public static TogglableParameter<Method> createTogglableParameter(int index, String id, Method method) {
+        return new TogglableParameter<>(index, id, method, AccessMethod.METHOD);
     }
 
-    public void setIndex(Integer index) {
-        this.paramIndex = index;
+    public int getIndex() {
+        return this.index;
     }
 
     public String getId() {
         return this.id;
     }
 
-    public void setId(String value) {
-        this.id = value;
+    public T getAccessibleObject() {
+        return this.accessibleObject;
     }
 
-    public Method getMethod() {
-        return this.methodGetField;
-    }
-
-    public void setMethod(Method method) {
-        this.methodGetField = method;
+    public AccessMethod getAccessMethod() {
+        return this.accessMethod;
     }
 }

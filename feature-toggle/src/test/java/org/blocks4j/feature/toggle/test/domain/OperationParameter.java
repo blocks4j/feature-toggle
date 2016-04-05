@@ -14,29 +14,25 @@
  *   limitations under the License.
  */
 
-package org.blocks4j.feature.toggle.test;
+package org.blocks4j.feature.toggle.test.domain;
 
-import org.blocks4j.feature.toggle.FeatureToggleConfiguration;
+import org.blocks4j.feature.toggle.annotation.parameters.ParameterToggle;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+public class OperationParameter {
 
-public class TestingFeatureToggleConfiguration implements FeatureToggleConfiguration {
+    @ParameterToggle("paramTestField")
+    private int parameterField;
 
-    private Set<String> enabledFeatures = new HashSet<>();
+    private Long parameterMethod;
 
-    private Map<String, Set<String>> enabledParameters = new HashMap<>();
-
-
-    @Override
-    public Set<String> getEnabledFeatures() {
-        return this.enabledFeatures;
+    public OperationParameter(int parameterField, Long parameterMethod) {
+        this.parameterField = parameterField;
+        this.parameterMethod = parameterMethod;
     }
 
-    @Override
-    public Map<String, Set<String>> getEnabledParameters() {
-        return this.enabledParameters;
+    @ParameterToggle("paramTestMethod")
+    public Long getParameter() {
+        return this.parameterMethod;
     }
+
 }

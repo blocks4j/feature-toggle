@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 @RunWith(Cucumber.class)
 @CucumberOptions(
         features = {"classpath:feature_files/feature_toggle.feature"},
-        glue = "org.blocks4j.feature.toggle.test",
+        glue = "org.blocks4j.feature.toggle.test.steps",
         tags = {"~@Ignore"},
         strict = true,
         plugin = "pretty"

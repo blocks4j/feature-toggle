@@ -76,7 +76,7 @@ public class Feature<T> implements InvocationHandler {
     private boolean isOn(Method method, Object[] args) {
         if (this.isFeatureOnFeatureList()) {
             if (args != null) {
-                return this.paramters.handle(method, args, this.featureName);
+                return this.paramters.isOn(method, args, this.featureName);
             } else {
                 return true;
             }

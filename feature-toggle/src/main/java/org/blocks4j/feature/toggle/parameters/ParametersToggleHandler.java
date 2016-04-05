@@ -16,6 +16,8 @@
 
 package org.blocks4j.feature.toggle.parameters;
 
+import com.google.common.primitives.Primitives;
+import org.apache.commons.collections4.CollectionUtils;
 import org.blocks4j.feature.toggle.FeatureToggleConfiguration;
 import org.blocks4j.feature.toggle.annotation.parameters.ParameterToggle;
 import org.blocks4j.feature.toggle.converter.TypeConverter;
@@ -38,7 +40,7 @@ public final class ParametersToggleHandler {
     private static final TypeConverter CONVERTER = new TypeConverter();
 
     private FeatureToggleConfiguration config;
-    private Map<Method, List<TogglableParameter>> paramsMapOfList = new HashMap<>();
+    private Map<Method, List<TogglableParameter>> paramsMethodsCache = new HashMap<>();
 
 
     public ParametersToggleHandler(FeatureToggleConfiguration config, Class<?> commonInterface) {
@@ -48,98 +50,164 @@ public final class ParametersToggleHandler {
 
     private void loadParamtersTogglable(Class<?> commonInterface) {
         for (Method method : commonInterface.getDeclaredMethods()) {
-            this.containsAnnotationOnParameters(method);
-            this.containsAnnotationOnField(method);
+            Collection<TogglableParameter<?>> togglableParameters = new ArrayList<>();
+
+            this.extractAnnotatedToggleParametersOnPrimitiveMethodParameters(method, togglableParameters);
+            this.extractAnnotatedToggleParametersOnComplexMethodParameters(method, togglableParameters);
+
+            this.put(method, togglableParameters);
         }
     }
 
-    public boolean handle(Method method, Object[] args, String featureName) {
-        if (!this.paramsMapOfList.containsKey(method)) {
+    public boolean isOn(Method method, Object[] args, String featureName) {
+        List<TogglableParameter> togglableParameters = this.paramsMethodsCache.get(method);
+        if (CollectionUtils.isEmpty(togglableParameters)) {
             return true;
         }
-        for (TogglableParameter togglableParameter : this.paramsMapOfList.get(method)) {
+
+        for (TogglableParameter togglableParameter : togglableParameters) {
             if (!this.isParamOn(args, featureName, togglableParameter)) {
                 return false;
             }
         }
+
         return true;
     }
 
     private boolean isParamOn(Object[] args, String featureName, TogglableParameter togglableParameter) {
-        Collection<String> configuredParameters = this.getParamtersConfigured(togglableParameter);
-        if (configuredParameters.isEmpty()) {
-            configuredParameters = this.getParamtersByFeatureConfigured(featureName, togglableParameter);
-            if (configuredParameters.isEmpty()) {
+        Collection<String> allowedParameters = this.getParamtersConfigured(togglableParameter);
+        if (allowedParameters.isEmpty()) {
+            allowedParameters = this.getParamtersByFeatureConfigured(featureName, togglableParameter);
+            if (allowedParameters.isEmpty()) {
                 return true;
             }
         }
-        return this.containsParameters(args[togglableParameter.getIndex()], togglableParameter, configuredParameters);
+        return this.validateFeatureToggleParameters(args[togglableParameter.getIndex()], togglableParameter, allowedParameters);
     }
 
-    private boolean containsParameters(Object arg, TogglableParameter togglableParameter, Collection<String> configuredParameters) {
-        for (String paramter : configuredParameters) {
-            if (togglableParameter.isAnnotatedOnField()) {
-                try {
-                    if (this.compareParams(togglableParameter.getMethod().invoke(arg), paramter)) {
-                        return true;
-                    }
-                } catch (Exception e) {
-                    throw new ParamtersToggleFactoryException(String.format("The method [%s] must be implemented! ", togglableParameter.getMethod().getName()), e);
-                }
-            } else {
-                if (this.compareParams(arg, paramter)) {
-                    return true;
-                }
+    private boolean validateFeatureToggleParameters(Object arg, TogglableParameter togglableParameter, Collection<String> allowedParameters) {
+        Object togglableParameterValue = this.getTogglableParameterValue(togglableParameter, arg);
+
+        for (String parameter : allowedParameters) {
+            if (this.compareParams(togglableParameterValue, parameter)) {
+                return true;
             }
         }
         return false;
     }
 
-    private void containsAnnotationOnField(Method method) {
+    @SuppressWarnings("unchecked")
+    private Object getTogglableParameterValue(TogglableParameter<?> togglableParameter, Object arg) {
+        Object togglableParameterValue;
+
+        switch (togglableParameter.getAccessMethod()) {
+            case DIRECT:
+                togglableParameterValue = arg;
+                break;
+            case METHOD:
+                try {
+                    TogglableParameter<Method> methodTogglableParameter = (TogglableParameter<Method>) togglableParameter;
+                    togglableParameterValue = methodTogglableParameter.getAccessibleObject().invoke(arg);
+                } catch (Exception e) {
+                    throw new ParamtersToggleFactoryException(String.format("The method [%s] must be implemented! ", togglableParameter.getAccessibleObject()), e);
+                }
+                break;
+            case FIELD:
+                try {
+                    TogglableParameter<Field> fieldTogglableParameter = (TogglableParameter<Field>) togglableParameter;
+                    togglableParameterValue = fieldTogglableParameter.getAccessibleObject().get(arg);
+                } catch (Exception e) {
+                    throw new ParamtersToggleFactoryException(String.format("Error accessing [%s] field! ", togglableParameter.getAccessibleObject()), e);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        return togglableParameterValue;
+    }
+
+    private void extractAnnotatedToggleParametersOnComplexMethodParameters(Method method, Collection<TogglableParameter<?>> togglableParameters) {
         int index = 0;
         for (Class<?> param : method.getParameterTypes()) {
-            for (Field field : param.getDeclaredFields()) {
-                Annotation annotation = field.getAnnotation(ParameterToggle.class);
-                if (annotation != null) {
-                    String methodName = String.format("get%s%s", field.getName().toUpperCase().charAt(0), field.getName().substring(1));
-                    try {
-                        Method getField = param.getDeclaredMethod(methodName);
-                        if (getField != null) {
-                            this.put(method, new TogglableParameter(index, ParameterToggle.class.cast(annotation).value(), getField));
-                        } else {
-                            throw new ParamtersToggleFactoryException(String.format("The method [%s] for attribute [%s] must be implemented !", methodName, field.getName()));
-                        }
-                    } catch (Exception e) {
-                        throw new ParamtersToggleFactoryException(String.format("The method [%s] for attribute [%s] must be implemented !", methodName, field.getName()), e);
-                    }
-                }
-            }
+            this.extractAnnotatedToggleParametersOnFields(index, param, togglableParameters);
+            this.extractAnnotatedToggleParametersOnMethods(index, param, togglableParameters);
             index++;
         }
     }
 
-    private void containsAnnotationOnParameters(Method method) {
+    private void extractAnnotatedToggleParametersOnMethods(int index, Class<?> param, Collection<TogglableParameter<?>> togglableParameters) {
+        for (Method method : param.getDeclaredMethods()) {
+            ParameterToggle annotation = method.getAnnotation(ParameterToggle.class);
+            if (annotation != null) {
+                try {
+                    if (!this.allowedParameterType(method.getReturnType())) {
+                        throw new IllegalArgumentException("Parameter Toggle is not allowed here: " + method);
+                    }
+                    method.setAccessible(true);
+                    togglableParameters.add(TogglableParameter.createTogglableParameter(index, ParameterToggle.class.cast(annotation).value(), method));
+                } catch (Exception e) {
+                    throw new ParamtersToggleFactoryException(String.format("Error on registering the method [%s] for togglable parameter", method), e);
+                }
+            }
+        }
+    }
+
+    private void extractAnnotatedToggleParametersOnFields(int index, Class<?> param, Collection<TogglableParameter<?>> togglableParameters) {
+        for (Field field : param.getDeclaredFields()) {
+            ParameterToggle annotation = field.getAnnotation(ParameterToggle.class);
+            if (annotation != null) {
+                try {
+                    if (!this.allowedParameterType(field.getType())) {
+                        throw new IllegalArgumentException("Parameter Toggle is not allowed here: " + field);
+                    }
+                    field.setAccessible(true);
+                    togglableParameters.add(TogglableParameter.createTogglableParameter(index, ParameterToggle.class.cast(annotation).value(), field));
+                } catch (Exception e) {
+                    throw new ParamtersToggleFactoryException(String.format("Error on registering the field [%s] for togglable parameter", field), e);
+                }
+            }
+        }
+    }
+
+    private void extractAnnotatedToggleParametersOnPrimitiveMethodParameters(Method method, Collection<TogglableParameter<?>> togglableParameters) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        Map<Integer, String> parameterToggleIndexes = new HashMap<>();
+
+        this.extractParameterToggleIndexes(method, parameterToggleIndexes);
+
+        parameterToggleIndexes.forEach((parameterIndex, parameterToggleName) -> {
+            if (this.allowedParameterType(parameterTypes[parameterIndex])) {
+                togglableParameters.add(TogglableParameter.createTogglableParameter(parameterIndex, parameterToggleName));
+            } else {
+                throw new IllegalArgumentException("Parameter Toggle is not allowed here: " + method.getParameters()[parameterIndex]);
+            }
+        });
+    }
+
+    private void extractParameterToggleIndexes(Method method, Map<Integer, String> parameterToggleIndexes) {
         int index = 0;
         for (Annotation[] parameterAnnotations : method.getParameterAnnotations()) {
             for (Annotation annotation : parameterAnnotations) {
-                if (annotation.annotationType().equals(ParameterToggle.class)) {
-                    this.put(method, new TogglableParameter(index, ParameterToggle.class.cast(annotation).value()));
+                if (annotation instanceof ParameterToggle) {
+                    parameterToggleIndexes.put(index, ((ParameterToggle) annotation).value());
                 }
             }
             index++;
         }
     }
 
-    private void put(Method method, TogglableParameter togglableParameter) {
-        if (this.paramsMapOfList.containsKey(method)) {
-            List<TogglableParameter> list = this.paramsMapOfList.get(method);
-            list.add(togglableParameter);
-            this.paramsMapOfList.put(method, list);
-        } else {
-            List<TogglableParameter> list = new ArrayList<>();
-            list.add(togglableParameter);
-            this.paramsMapOfList.put(method, list);
+    private boolean allowedParameterType(Class<?> parameterType) {
+        return parameterType.isPrimitive() || parameterType == String.class || Primitives.isWrapperType(parameterType);
+    }
+
+    private void put(Method method, Collection<TogglableParameter<?>> togglableParameters) {
+        List<TogglableParameter> list = this.paramsMethodsCache.get(method);
+        if (list == null) {
+            list = new ArrayList<>();
+            this.paramsMethodsCache.put(method, list);
         }
+        list.addAll(togglableParameters);
     }
 
     private Collection<String> getParamtersConfigured(TogglableParameter togglableParameter) {
@@ -152,7 +220,7 @@ public final class ParametersToggleHandler {
 
     private Collection<String> getConfigured(String key) {
         Collection<String> paramtersConfigured = this.config.getEnabledParameters().get(key);
-        if ((paramtersConfigured == null) || paramtersConfigured.isEmpty()) {
+        if (paramtersConfigured == null) {
             return Collections.emptyList();
         }
         return paramtersConfigured;
