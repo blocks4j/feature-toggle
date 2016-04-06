@@ -16,9 +16,13 @@
 
 package org.blocks4j.feature.toggle.camel;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.ProcessorDefinition;
 import org.apache.camel.processor.SendProcessor;
+import org.apache.camel.spi.InterceptStrategy;
 import org.blocks4j.feature.toggle.FeatureToggleConfiguration;
 
 public class ToggleFeatureRoute extends RouteBuilder {
@@ -37,15 +41,18 @@ public class ToggleFeatureRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        this.getContext().addInterceptStrategy((context, definition, target, nextTarget) -> {
-            if (nextTarget instanceof SendProcessor) {
-                SendProcessor sendProcessor = (SendProcessor) nextTarget;
-                if (sendProcessor.getDestination().getEndpointUri().equals(ToggleFeatureRoute.this.featureEndPoint)) {
-                    Endpoint alternateEndpoint = context.getEndpoint(ToggleFeatureRoute.this.alternateEndPoint);
-                    return new ToggledSendProcessor(ToggleFeatureRoute.this.config, ToggleFeatureRoute.this.featureName, sendProcessor.getDestination(), alternateEndpoint);
+        this.getContext().addInterceptStrategy(new InterceptStrategy() {
+            @Override
+            public Processor wrapProcessorInInterceptors(CamelContext camelContext, ProcessorDefinition<?> processorDefinition, Processor target, Processor nextTarget) throws Exception {
+                if (nextTarget instanceof SendProcessor) {
+                    SendProcessor sendProcessor = (SendProcessor) nextTarget;
+                    if (sendProcessor.getDestination().getEndpointUri().equals(ToggleFeatureRoute.this.featureEndPoint)) {
+                        Endpoint alternateEndpoint = camelContext.getEndpoint(ToggleFeatureRoute.this.alternateEndPoint);
+                        return new ToggledSendProcessor(ToggleFeatureRoute.this.config, ToggleFeatureRoute.this.featureName, sendProcessor.getDestination(), alternateEndpoint);
+                    }
                 }
+                return nextTarget;
             }
-            return nextTarget;
         });
     }
 

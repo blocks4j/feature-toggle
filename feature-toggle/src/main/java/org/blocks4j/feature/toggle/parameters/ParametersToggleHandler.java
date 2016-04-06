@@ -176,13 +176,16 @@ public final class ParametersToggleHandler {
 
         this.extractParameterToggleIndexes(method, parameterToggleIndexes);
 
-        parameterToggleIndexes.forEach((parameterIndex, parameterToggleName) -> {
+        for (Map.Entry<Integer, String> parametersToggle : parameterToggleIndexes.entrySet()) {
+            Integer parameterIndex = parametersToggle.getKey();
+            String parameterToggleName = parametersToggle.getValue();
+
             if (this.allowedParameterType(parameterTypes[parameterIndex])) {
                 togglableParameters.add(TogglableParameter.createTogglableParameter(parameterIndex, parameterToggleName));
             } else {
-                throw new IllegalArgumentException("Parameter Toggle is not allowed here: " + method.getParameters()[parameterIndex]);
+                throw new IllegalArgumentException("Parameter Toggle is not allowed here: " + method);
             }
-        });
+        }
     }
 
     private void extractParameterToggleIndexes(Method method, Map<Integer, String> parameterToggleIndexes) {

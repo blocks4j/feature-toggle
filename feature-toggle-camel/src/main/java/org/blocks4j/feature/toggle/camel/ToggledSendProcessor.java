@@ -18,6 +18,7 @@ package org.blocks4j.feature.toggle.camel;
 
 import org.apache.camel.AsyncCallback;
 import org.apache.camel.AsyncProcessor;
+import org.apache.camel.AsyncProducerCallback;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
@@ -130,15 +131,18 @@ class ToggledSendProcessor extends ServiceSupport implements AsyncProcessor, Tra
 
             boolean sync = true;
             try {
-                sync = producer.process(exchange, doneSync -> {
-                    try {
-                        // restore previous MEP
-                        target.setPattern(existingPattern);
-                        // emit event that the exchange was sent to the endpoint
-                        long timeTaken = watch.stop();
-                        EventHelper.notifyExchangeSent(target.getContext(), target, featureDestination, timeTaken);
-                    } finally {
-                        callback.done(doneSync);
+                sync = producer.process(exchange, new AsyncCallback() {
+                    @Override
+                    public void done(boolean doneSync) {
+                        try {
+                            // restore previous MEP
+                            target.setPattern(existingPattern);
+                            // emit event that the exchange was sent to the endpoint
+                            long timeTaken = watch.stop();
+                            EventHelper.notifyExchangeSent(target.getContext(), target, featureDestination, timeTaken);
+                        } finally {
+                            callback.done(doneSync);
+                        }
                     }
                 });
             } catch (Throwable throwable) {
@@ -149,15 +153,21 @@ class ToggledSendProcessor extends ServiceSupport implements AsyncProcessor, Tra
         }
 
         // send the exchange to the featureOnDestination using the producer cache for the non optimized producers
-        return this.producerCache.doInAsyncProducer(featureDestination, exchange, null, callback, (producer1, asyncProducer, exchange1, pattern, callback1) -> {
-            final Exchange target = ToggledSendProcessor.this.configureExchange(exchange1, featureDestination);
-            LOG.debug(">>>> {} {}", featureDestination, exchange1);
-            return asyncProducer.process(target, doneSync -> {
-                // restore previous MEP
-                target.setPattern(existingPattern);
-                // signal we are done
-                callback1.done(doneSync);
-            });
+        return this.producerCache.doInAsyncProducer(featureDestination, exchange, null, callback, new AsyncProducerCallback() {
+            @Override
+            public boolean doInAsyncProducer(Producer producer, AsyncProcessor asyncProcessor, Exchange exchange, ExchangePattern exchangePattern, final AsyncCallback asyncCallback) {
+                final Exchange target = ToggledSendProcessor.this.configureExchange(exchange, featureDestination);
+                LOG.debug(">>>> {} {}", featureDestination, exchange);
+                return asyncProcessor.process(target, new AsyncCallback() {
+                    @Override
+                    public void done(boolean doneSync) {
+                        // restore previous MEP
+                        target.setPattern(existingPattern);
+                        // signal we are done
+                        asyncCallback.done(doneSync);
+                    }
+                });
+            }
         });
     }
 
@@ -190,7 +200,7 @@ class ToggledSendProcessor extends ServiceSupport implements AsyncProcessor, Tra
             // and use a regular HashMap as we do not want a soft reference store that may get re-claimed when low on memory
             // as we want to ensure the producer is kept around, to ensure its lifecycle is fully managed,
             // eg stopping the producer when we stop etc.
-            this.producerCache = new ProducerCache(this, this.camelContext, new HashMap<>(2));
+            this.producerCache = new ProducerCache(this, this.camelContext, new HashMap<String, Producer>(2));
             // do not add as service as we do not want to manage the producer cache
         }
 

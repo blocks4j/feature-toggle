@@ -33,9 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class FeatureToggleSteps {
 
@@ -75,8 +73,9 @@ public class FeatureToggleSteps {
                                                                         TestingFeature.class)
                                     .defaultFeature(this.features.get(defaultImplementationName));
 
-        implementations.forEach(feature ->
-                                        testingFeatureSwitchableFeatureBuilder.when(feature.get("featureName"), this.features.get(feature.get("implementationName"))));
+        for (Map<String, String> feature : implementations) {
+            testingFeatureSwitchableFeatureBuilder.when(feature.get("featureName"), this.features.get(feature.get("implementationName")));
+        }
 
         this.featureImplementation = testingFeatureSwitchableFeatureBuilder.build();
 
@@ -93,35 +92,31 @@ public class FeatureToggleSteps {
     public void thoseFeaturesActivatesWithThoseParameters(String rawParameters) throws Throwable {
         String[] split = rawParameters.split(";", -1);
 
-        Optional<Map<String, Set<String>>> parameterMapOptional = Arrays.asList(split).stream()
-                                                                        .filter(StringUtils::isNotBlank)
-                                                                        .map(parameterValuesString -> {
-                                                                            Map<String, Set<String>> parameterMap = new HashMap<>();
-                                                                            String[] parameterValuesSplit = parameterValuesString.split("=", -1);
+        Map<String, Set<String>> parameterMap = new HashMap<>();
 
-                                                                            Set<String> parameters = new HashSet<>();
-                                                                            if (parameterValuesSplit.length > 1) {
-                                                                                parameters.addAll(Arrays.asList(parameterValuesSplit[1].split(",", -1)).stream()
-                                                                                                        .filter(StringUtils::isNotBlank)
-                                                                                                        .collect(Collectors.toSet()));
+        for (String parameterAndValues : split) {
+            if (StringUtils.isNotBlank(parameterAndValues)) {
+                String[] parameterAndValuesSplit = parameterAndValues.split("=", -1);
 
+                if (parameterAndValuesSplit.length > 0) {
+                    String parameterName = parameterAndValuesSplit[0];
+                    Set<String> parameterValues = new HashSet<>();
+                    if (parameterAndValuesSplit.length == 2 && StringUtils.isNotBlank(parameterAndValuesSplit[1])) {
+                        String parameterValuesString = parameterAndValuesSplit[1];
 
-                                                                            }
+                        for (String parameterValue : parameterValuesString.split(",", -1)) {
+                            if (StringUtils.isNotBlank(parameterValue)) {
+                                parameterValues.add(parameterValue);
+                            }
+                        }
+                    }
 
-                                                                            parameterMap.put(parameterValuesSplit[0], parameters);
-
-                                                                            return parameterMap;
-                                                                        })
-                                                                        .reduce((parametersMap1, parametersMap2) -> {
-                                                                            parametersMap1.putAll(parametersMap2);
-                                                                            return parametersMap1;
-                                                                        });
-
-        if (parameterMapOptional.isPresent()) {
-            Map<String, Set<String>> parameterMap = parameterMapOptional.get();
-            this.featureConfig.getEnabledParameters().putAll(parameterMap);
+                    parameterMap.put(parameterName, parameterValues);
+                }
+            }
         }
 
+        this.featureConfig.getEnabledParameters().putAll(parameterMap);
 
     }
 
@@ -137,26 +132,33 @@ public class FeatureToggleSteps {
 
     @Then("^the implementation of operation\\(OperationParameter\\) \"([^\"]*)\" will be used$")
     public void theImplementationWillBeUsed(final String usedImplementationName) throws Throwable {
-        this.features.forEach((implementationName, implementation) -> {
+        for (Map.Entry<String, TestingFeature> testingFeatureEntry : this.features.entrySet()) {
+            String implementationName = testingFeatureEntry.getKey();
+            TestingFeature implementation = testingFeatureEntry.getValue();
+
             if (usedImplementationName.equalsIgnoreCase(implementationName)) {
                 Mockito.verify(implementation, Mockito.only()).operation(Mockito.<OperationParameter>any());
                 Mockito.verify(implementation, Mockito.times(1)).operation(Mockito.<OperationParameter>any());
             } else {
                 Mockito.verify(implementation, Mockito.never()).operation(Mockito.<OperationParameter>any());
             }
-        });
+        }
+
     }
 
     @Then("^the implementation of operation\\(String\\) \"([^\"]*)\" will be used$")
     public void theImplementationStringWillBeUsed(final String usedImplementationName) throws Throwable {
-        this.features.forEach((implementationName, implementation) -> {
+        for (Map.Entry<String, TestingFeature> testingFeatureEntry : this.features.entrySet()) {
+            String implementationName = testingFeatureEntry.getKey();
+            TestingFeature implementation = testingFeatureEntry.getValue();
+
             if (usedImplementationName.equalsIgnoreCase(implementationName)) {
                 Mockito.verify(implementation, Mockito.only()).operation(Mockito.anyString());
                 Mockito.verify(implementation, Mockito.times(1)).operation(Mockito.anyString());
             } else {
                 Mockito.verify(implementation, Mockito.never()).operation(Mockito.anyString());
             }
-        });
+        }
     }
 
 

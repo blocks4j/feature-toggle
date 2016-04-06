@@ -36,7 +36,7 @@ import java.util.Map;
 
 public class FeatureToggleFactory {
 
-    private static Collection<Feature> toggleList = Collections.synchronizedCollection(new HashSet<>());
+    private static Collection<Feature> toggleList = Collections.synchronizedCollection(new HashSet<Feature>());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureToggleFactory.class);
     private FeatureToggleConfiguration config;
@@ -74,10 +74,10 @@ public class FeatureToggleFactory {
         if (!this.isCommonInterfaceValid(commonInterface)) {
             throw new FeatureToggleFactoryException("The commonInterface must be a inteface.");
         }
-        if (!this.isObjectValid(commonInterface, featureOn)) {
+        if (this.isNotObjectValid(commonInterface, featureOn)) {
             throw new FeatureToggleFactoryException(String.format("The featureOn have to implement [%s] ", commonInterface.getName()));
         }
-        if (!this.isObjectValid(commonInterface, featureOff)) {
+        if (this.isNotObjectValid(commonInterface, featureOff)) {
             throw new FeatureToggleFactoryException(String.format("The featureOff have to implement [%s] ", commonInterface.getName()));
         }
     }
@@ -86,8 +86,12 @@ public class FeatureToggleFactory {
         return !StringUtils.isEmpty(featureName);
     }
 
-    private boolean isObjectValid(Class<?> commonInterface, Object featureOn) {
-        return (commonInterface != null) && (featureOn != null) && commonInterface.isAssignableFrom(featureOn.getClass());
+    private boolean isObjectValid(Class<?> commonInterface, Object feature) {
+        return (commonInterface != null) && (feature != null) && commonInterface.isAssignableFrom(feature.getClass());
+    }
+
+    private boolean isNotObjectValid(Class<?> commonInterface, Object feature) {
+        return !this.isObjectValid(commonInterface, feature);
     }
 
     private boolean isCommonInterfaceValid(Class<?> commonInterface) {

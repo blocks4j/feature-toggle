@@ -35,7 +35,7 @@ public class TogglableParameter<T> {
     }
 
     public static TogglableParameter<?> createTogglableParameter(int index, String id) {
-        return new TogglableParameter<>(index, id, null, AccessMethod.DIRECT);
+        return new TogglableParameter<Object>(index, id, null, AccessMethod.DIRECT);
     }
 
     public static TogglableParameter<Field> createTogglableParameter(int index, String id, Field field) {
