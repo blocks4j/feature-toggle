@@ -16,6 +16,7 @@
 
 package org.blocks4j.feature.toggle.parameters;
 
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 import org.apache.commons.collections4.CollectionUtils;
 import org.blocks4j.feature.toggle.FeatureToggleConfiguration;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +40,13 @@ public final class ParametersToggleHandler {
 
     private static final String PARAM_BY_FEATURE = "%s&%s";
     private static final TypeConverter CONVERTER = new TypeConverter();
+    private static final HashSet<Class<?>> ALLOWED_PARAMETER_TOGGLE = Sets.<Class<?>>newHashSet(Character.class,
+                                                                                                Byte.class,
+                                                                                                Short.class,
+                                                                                                Integer.class,
+                                                                                                Long.class,
+                                                                                                Boolean.class,
+                                                                                                String.class);
 
     private FeatureToggleConfiguration config;
     private Map<Method, List<TogglableParameter>> paramsMethodsCache = new HashMap<>();
@@ -88,12 +97,7 @@ public final class ParametersToggleHandler {
     private boolean validateFeatureToggleParameters(Object arg, TogglableParameter togglableParameter, Collection<String> allowedParameters) {
         Object togglableParameterValue = this.getTogglableParameterValue(togglableParameter, arg);
 
-        for (String parameter : allowedParameters) {
-            if (this.compareParams(togglableParameterValue, parameter)) {
-                return true;
-            }
-        }
-        return false;
+        return allowedParameters.contains(CONVERTER.convertToString(togglableParameterValue));
     }
 
     @SuppressWarnings("unchecked")
@@ -201,7 +205,7 @@ public final class ParametersToggleHandler {
     }
 
     private boolean allowedParameterType(Class<?> parameterType) {
-        return parameterType.isPrimitive() || parameterType == String.class || Primitives.isWrapperType(parameterType);
+        return ALLOWED_PARAMETER_TOGGLE.contains(Primitives.wrap(parameterType));
     }
 
     private void put(Method method, Collection<TogglableParameter<?>> togglableParameters) {
@@ -227,9 +231,5 @@ public final class ParametersToggleHandler {
             return Collections.emptyList();
         }
         return paramtersConfigured;
-    }
-
-    private boolean compareParams(Object param, String paramConfigured) {
-        return param != null && param.equals(CONVERTER.convertToType(paramConfigured, param.getClass()));
     }
 }
