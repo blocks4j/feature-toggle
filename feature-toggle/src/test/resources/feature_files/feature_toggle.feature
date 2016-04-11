@@ -29,28 +29,28 @@ Feature: Feature Toggle Tests
     Then the implementation of operation(OperationParameter) "<invokedImplementation>" will be used
 
     Examples:
-      | features           | featureParameters                                          | parameterField | parameterMethod | invokedImplementation |
-      |                    |                                                            | 2              | 1               | main                  |
-      | xicote             |                                                            | 2              | 1               | main                  |
-      | featureName        |                                                            | 2              | 1               | newImplementation     |
-      | featureName,xicote |                                                            | 2              | 1               | newImplementation     |
-      | xicote,featureName |                                                            | 2              | 1               | newImplementation     |
-      |                    | paramTestField=1                                           | 2              | 2               | main                  |
-      |                    | paramTestMethod=1                                          | 1              | 2               | main                  |
-      | xicote             | paramTest=1                                                | 2              | 2               | main                  |
-      | featureName        | paramTestField=1                                           | 2              | 2               | main                  |
-      | featureName        | paramTestField=1                                           | 1              | 2               | newImplementation     |
-      | featureName        | paramTestMethod=3                                          | 2              | 3               | newImplementation     |
-      | featureName        | paramTest=                                                 | 2              | 1               | newImplementation     |
-      | featureName        | paramTestField=1                                           | 2              | 1               | main                  |
-      | featureName        | paramTestField=1;paramTestMethod=1                         | 2              | 1               | main                  |
-      | featureName        | paramTestField=1;paramTestMethod=1                         | 1              | 1               | newImplementation     |
-      | featureName        | wrongfeatureName&paramTestField=1                          | 2              | 1               | newImplementation     |
-      | featureName        | featureName&paramTestField=1                               | 2              | 1               | main                  |
-      | featureName        | featureName&paramTestField=1                               | 1              | 3               | newImplementation     |
-      | featureName        | featureName&paramTestField=1;featureName&paramTestMethod=3 | 1              | 3               | newImplementation     |
-      | featureName,xicote |                                                            | 2              | 2               | newImplementation     |
-      | xicote,featureName |                                                            | 2              | 1               | newImplementation     |
+      | features           | featureParameters                                           | parameterField | parameterMethod | invokedImplementation |
+      |                    |                                                             | 2              | F1              | main                  |
+      | xicote             |                                                             | 2              | F1              | main                  |
+      | featureName        |                                                             | 2              | F1              | newImplementation     |
+      | featureName,xicote |                                                             | 2              | F1              | newImplementation     |
+      | xicote,featureName |                                                             | 2              | F1              | newImplementation     |
+      |                    | paramTestField=1                                            | 2              | F2              | main                  |
+      |                    | paramTestMethod=F1                                          | 1              | F2              | main                  |
+      | xicote             | paramTest=1                                                 | 2              | F2              | main                  |
+      | featureName        | paramTestField=1                                            | 2              | F2              | main                  |
+      | featureName        | paramTestField=1                                            | 1              | F2              | newImplementation     |
+      | featureName        | paramTestMethod=F3                                          | 2              | F3              | newImplementation     |
+      | featureName        | paramTest=                                                  | 2              | F1              | newImplementation     |
+      | featureName        | paramTestField=1                                            | 2              | F1              | main                  |
+      | featureName        | paramTestField=1;paramTestMethod=F1                         | 2              | F1              | main                  |
+      | featureName        | paramTestField=1;paramTestMethod=F1                         | 1              | F1              | newImplementation     |
+      | featureName        | wrongfeatureName&paramTestField=1                           | 2              | F1              | newImplementation     |
+      | featureName        | featureName&paramTestField=1                                | 2              | F1              | main                  |
+      | featureName        | featureName&paramTestField=1                                | 1              | F3              | newImplementation     |
+      | featureName        | featureName&paramTestField=1;featureName&paramTestMethod=F3 | 1              | F3              | newImplementation     |
+      | featureName,xicote |                                                             | 2              | F2              | newImplementation     |
+      | xicote,featureName |                                                             | 2              | F1              | newImplementation     |
 
   Scenario Template: Switchable Feature
     Given a implementation of this interface called "main" with parameter toggle called 'paramTest'

@@ -205,7 +205,7 @@ public final class ParametersToggleHandler {
     }
 
     private boolean allowedParameterType(Class<?> parameterType) {
-        return ALLOWED_PARAMETER_TOGGLE.contains(Primitives.wrap(parameterType));
+        return ALLOWED_PARAMETER_TOGGLE.contains(Primitives.wrap(parameterType)) || Enum.class.isAssignableFrom(parameterType);
     }
 
     private void put(Method method, Collection<TogglableParameter<?>> togglableParameters) {

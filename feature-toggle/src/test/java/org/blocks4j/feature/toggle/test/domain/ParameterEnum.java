@@ -16,23 +16,8 @@
 
 package org.blocks4j.feature.toggle.test.domain;
 
-import org.blocks4j.feature.toggle.annotation.parameters.ParameterToggle;
+public enum ParameterEnum {
 
-public class OperationParameter {
-
-    @ParameterToggle("paramTestField")
-    private int parameterField;
-
-    private ParameterEnum parameterMethod;
-
-    public OperationParameter(int parameterField, ParameterEnum parameterMethod) {
-        this.parameterField = parameterField;
-        this.parameterMethod = parameterMethod;
-    }
-
-    @ParameterToggle("paramTestMethod")
-    public ParameterEnum getParameter() {
-        return this.parameterMethod;
-    }
+    F1, F2, F3
 
 }
