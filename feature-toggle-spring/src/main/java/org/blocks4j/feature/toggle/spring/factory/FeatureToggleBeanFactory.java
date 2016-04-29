@@ -40,7 +40,7 @@ public class FeatureToggleBeanFactory<T> implements ApplicationContextAware {
 
     public T toggle() {
         return org.blocks4j.feature.toggle.factory.FeatureToggleFactory
-                .forFeature(this.config, this.getFeatureName(), this.commonInterface)
+                .<T>forFeature(this.config, this.getFeatureName(), this.commonInterface)
                 .whenEnabled(this.getBeanOn())
                 .whenDisabled(this.getBeanOff())
                 .build();

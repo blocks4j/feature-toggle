@@ -59,7 +59,7 @@ public class FeatureToggleSteps {
 
     @Given("^the feature toggle called \"([^\"]*)\" switching between:$")
     public void theFeatureToggleCalledSwitchingBetween(String featureName, Map<String, String> featureOption) throws Throwable {
-        this.featureImplementation = FeatureToggleFactory.forFeature(this.featureConfig,
+        this.featureImplementation = FeatureToggleFactory.<TestingFeature>forFeature(this.featureConfig,
                                                                      featureName,
                                                                      TestingFeature.class)
                                                          .whenEnabled(this.features.get(featureOption.get("newFeature")))
@@ -70,7 +70,7 @@ public class FeatureToggleSteps {
     @Given("^the Switchable feature toggle for alternative of the implementation called \"([^\"]*)\" and this cases:$")
     public void theSwitchableFeatureToggleForAlternativeOfTheImplementationCalledAndThisCases(String defaultImplementationName, List<Map<String, String>> implementations) throws Throwable {
         final FeatureToggleFactory.SwitchableFeatureBuilder<TestingFeature> testingFeatureSwitchableFeatureBuilder =
-                FeatureToggleFactory.forSwitchableFeaturesConfiguration(this.featureConfig,
+                FeatureToggleFactory.<TestingFeature>forSwitchableFeaturesConfiguration(this.featureConfig,
                                                                         TestingFeature.class)
                                     .defaultFeature(this.features.get(defaultImplementationName));
 

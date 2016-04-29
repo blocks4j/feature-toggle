@@ -61,7 +61,7 @@ public class FeatureToggleFactory<T> implements FactoryBean<T> {
     @Override
     public T getObject() throws Exception {
         return org.blocks4j.feature.toggle.factory.FeatureToggleFactory
-                .forFeature(this.config, this.featureName, this.commonInterface)
+                .<T>forFeature(this.config, this.featureName, this.commonInterface)
                 .whenEnabled(this.instantiatedFeatureOn)
                 .whenDisabled(this.instantiatedFeatureOff)
                 .build();
