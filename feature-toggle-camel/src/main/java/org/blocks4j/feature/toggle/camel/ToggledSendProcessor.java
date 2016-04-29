@@ -68,7 +68,7 @@ class ToggledSendProcessor extends ServiceSupport implements AsyncProcessor, Tra
 
         this.featureOnDestination = featureOnDestination;
         this.featureOffDestination = featureOffDestination;
-        this.producers = new HashMap<>();
+        this.producers = new HashMap<Endpoint, AsyncProcessor>();
         this.camelContext = featureOnDestination.getCamelContext();
 
         ObjectHelper.notNull(this.camelContext, "camelContext");

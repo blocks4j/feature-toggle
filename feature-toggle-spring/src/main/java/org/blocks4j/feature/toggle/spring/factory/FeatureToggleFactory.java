@@ -78,7 +78,7 @@ public class FeatureToggleFactory<T> implements FactoryBean<T> {
     }
 
     public static <W> FeatureToggleFactoryBuilder<W> createBuilder() {
-        return new FeatureToggleFactoryBuilder<>();
+        return new FeatureToggleFactoryBuilder<W>();
     }
 
     public static class FeatureToggleFactoryBuilder<T> {
@@ -119,7 +119,7 @@ public class FeatureToggleFactory<T> implements FactoryBean<T> {
         }
 
         public FeatureToggleFactory<T> build() {
-            return new FeatureToggleFactory<>(this.config, this.featureName, this.commonInterface, this.featureOn, this.featureOff);
+            return new FeatureToggleFactory<T>(this.config, this.featureName, this.commonInterface, this.featureOn, this.featureOff);
         }
     }
 }

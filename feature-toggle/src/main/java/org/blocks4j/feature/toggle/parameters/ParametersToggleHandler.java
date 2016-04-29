@@ -49,7 +49,7 @@ public final class ParametersToggleHandler {
                                                                                                 String.class);
 
     private FeatureToggleConfiguration config;
-    private Map<Method, List<TogglableParameter>> paramsMethodsCache = new HashMap<>();
+    private Map<Method, List<TogglableParameter>> paramsMethodsCache = new HashMap<Method, List<TogglableParameter>>();
 
 
     public ParametersToggleHandler(FeatureToggleConfiguration config, Class<?> commonInterface) {
@@ -59,7 +59,7 @@ public final class ParametersToggleHandler {
 
     private void loadParamtersTogglable(Class<?> commonInterface) {
         for (Method method : commonInterface.getDeclaredMethods()) {
-            Collection<TogglableParameter<?>> togglableParameters = new ArrayList<>();
+            Collection<TogglableParameter<?>> togglableParameters = new ArrayList<TogglableParameter<?>>();
 
             this.extractAnnotatedToggleParametersOnPrimitiveMethodParameters(method, togglableParameters);
             this.extractAnnotatedToggleParametersOnComplexMethodParameters(method, togglableParameters);
@@ -176,7 +176,7 @@ public final class ParametersToggleHandler {
 
     private void extractAnnotatedToggleParametersOnPrimitiveMethodParameters(Method method, Collection<TogglableParameter<?>> togglableParameters) {
         Class<?>[] parameterTypes = method.getParameterTypes();
-        Map<Integer, String> parameterToggleIndexes = new HashMap<>();
+        Map<Integer, String> parameterToggleIndexes = new HashMap<Integer, String>();
 
         this.extractParameterToggleIndexes(method, parameterToggleIndexes);
 
@@ -211,7 +211,7 @@ public final class ParametersToggleHandler {
     private void put(Method method, Collection<TogglableParameter<?>> togglableParameters) {
         List<TogglableParameter> list = this.paramsMethodsCache.get(method);
         if (list == null) {
-            list = new ArrayList<>();
+            list = new ArrayList<TogglableParameter>();
             this.paramsMethodsCache.put(method, list);
         }
         list.addAll(togglableParameters);

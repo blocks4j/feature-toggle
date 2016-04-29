@@ -47,7 +47,7 @@ public class FeatureToggleSteps {
 
     @Before
     public void beforeTest() {
-        this.features = new HashMap<>();
+        this.features = new HashMap<String, TestingFeature>();
         this.featureConfig = new TestingFeatureToggleConfiguration();
     }
 
@@ -93,7 +93,7 @@ public class FeatureToggleSteps {
     public void thoseFeaturesActivatesWithThoseParameters(String rawParameters) throws Throwable {
         String[] split = rawParameters.split(";", -1);
 
-        Map<String, Set<String>> parameterMap = new HashMap<>();
+        Map<String, Set<String>> parameterMap = new HashMap<String, Set<String>>();
 
         for (String parameterAndValues : split) {
             if (StringUtils.isNotBlank(parameterAndValues)) {
@@ -101,7 +101,7 @@ public class FeatureToggleSteps {
 
                 if (parameterAndValuesSplit.length > 0) {
                     String parameterName = parameterAndValuesSplit[0];
-                    Set<String> parameterValues = new HashSet<>();
+                    Set<String> parameterValues = new HashSet<String>();
                     if (parameterAndValuesSplit.length == 2 && StringUtils.isNotBlank(parameterAndValuesSplit[1])) {
                         String parameterValuesString = parameterAndValuesSplit[1];
 

@@ -25,9 +25,9 @@ import java.util.Set;
 
 public class TestingFeatureToggleConfiguration implements FeatureToggleConfiguration {
 
-    private Set<String> enabledFeatures = new HashSet<>();
+    private Set<String> enabledFeatures = new HashSet<String>();
 
-    private Map<String, Set<String>> enabledParameters = new HashMap<>();
+    private Map<String, Set<String>> enabledParameters = new HashMap<String, Set<String>>();
 
 
     @Override

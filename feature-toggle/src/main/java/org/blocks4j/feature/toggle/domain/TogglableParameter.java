@@ -39,11 +39,11 @@ public class TogglableParameter<T> {
     }
 
     public static TogglableParameter<Field> createTogglableParameter(int index, String id, Field field) {
-        return new TogglableParameter<>(index, id, field, AccessMethod.FIELD);
+        return new TogglableParameter<Field>(index, id, field, AccessMethod.FIELD);
     }
 
     public static TogglableParameter<Method> createTogglableParameter(int index, String id, Method method) {
-        return new TogglableParameter<>(index, id, method, AccessMethod.METHOD);
+        return new TogglableParameter<Method>(index, id, method, AccessMethod.METHOD);
     }
 
     public int getIndex() {

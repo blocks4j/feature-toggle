@@ -51,7 +51,7 @@ public class FeatureToggleFactory {
 
     private <T> T createFeatureProxy(String featureName, Class<? super T> commonInterface, T featureOn, T featureOff) {
         this.validateParams(featureName, commonInterface, featureOn, featureOff);
-        Feature<T> feature = new Feature<>();
+        Feature<T> feature = new Feature<T>();
         feature.setConfig(this.config);
         feature.setCommonsInterface(commonInterface);
         feature.setOn(featureOn);
@@ -99,11 +99,11 @@ public class FeatureToggleFactory {
     }
 
     public static <T> Builder<T> forFeature(FeatureToggleConfiguration config, String featureName, Class<? super T> commonInterface) {
-        return new Builder<>(config, featureName, commonInterface);
+        return new Builder<T>(config, featureName, commonInterface);
     }
 
     public static <T> SwitchableFeatureBuilder<T> forSwitchableFeaturesConfiguration(FeatureToggleConfiguration config, Class<? super T> commonInterface) {
-        return new SwitchableFeatureBuilder<>(config, commonInterface);
+        return new SwitchableFeatureBuilder<T>(config, commonInterface);
     }
 
     public static class Builder<T> {
@@ -111,7 +111,7 @@ public class FeatureToggleFactory {
         private String featureName;
 
         private Builder(FeatureToggleConfiguration config, String featureName, Class<? super T> commonInterface) {
-            this.switchableFeatureBuilder = new SwitchableFeatureBuilder<>(config, commonInterface);
+            this.switchableFeatureBuilder = new SwitchableFeatureBuilder<T>(config, commonInterface);
             this.featureName = featureName;
         }
 
@@ -139,7 +139,7 @@ public class FeatureToggleFactory {
         public SwitchableFeatureBuilder(FeatureToggleConfiguration config, Class<? super T> commonInterface) {
             this.config = config;
             this.commonInterface = commonInterface;
-            this.cases = new LinkedHashMap<>(4);
+            this.cases = new LinkedHashMap<String, T>(4);
         }
 
         public SwitchableFeatureBuilder<T> when(String featureName, T featureImpl) {
@@ -161,7 +161,7 @@ public class FeatureToggleFactory {
 
             T main = null;
             T next;
-            List<Map.Entry<String, T>> featuresInformation = new ArrayList<>(this.cases.entrySet());
+            List<Map.Entry<String, T>> featuresInformation = new ArrayList<Map.Entry<String, T>>(this.cases.entrySet());
 
             for (int i = featuresInformation.size() - 1; i >= 0; i--) {
                 if (main == null) {
