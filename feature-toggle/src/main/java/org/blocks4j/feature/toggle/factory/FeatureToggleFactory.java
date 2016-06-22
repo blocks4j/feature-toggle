@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.blocks4j.feature.toggle.FeatureToggleConfiguration;
 import org.blocks4j.feature.toggle.exception.FeatureToggleFactoryException;
 import org.blocks4j.feature.toggle.proxy.Feature;
+import org.blocks4j.feature.toggle.proxy.ProbabilisticFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +38,14 @@ import java.util.Map;
 public class FeatureToggleFactory {
 
     private static Collection<Feature> toggleList = Collections.synchronizedCollection(new HashSet<Feature>());
-
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureToggleFactory.class);
-    private FeatureToggleConfiguration config;
 
-    private FeatureToggleFactory(FeatureToggleConfiguration config) {
+    private FeatureToggleConfiguration config;
+    private final boolean allowProbabilisticFeatures;
+
+    private FeatureToggleFactory(FeatureToggleConfiguration config, boolean allowProbabilisticFeatures) {
         this.config = config;
+        this.allowProbabilisticFeatures = allowProbabilisticFeatures;
     }
 
     public static Collection<Feature> getToggleList() {
@@ -51,7 +54,14 @@ public class FeatureToggleFactory {
 
     private <T> T createFeatureProxy(String featureName, Class<? super T> commonInterface, T featureOn, T featureOff) {
         this.validateParams(featureName, commonInterface, featureOn, featureOff);
-        Feature<T> feature = new Feature<T>();
+        Feature<T> feature;
+
+        if (this.allowProbabilisticFeatures) {
+            feature = new ProbabilisticFeature<T>();
+        } else {
+            feature = new Feature<T>();
+        }
+
         feature.setConfig(this.config);
         feature.setCommonsInterface(commonInterface);
         feature.setOn(featureOn);
@@ -125,6 +135,11 @@ public class FeatureToggleFactory {
             return this;
         }
 
+        public Builder<T> allowProbabilisticFeatures() {
+            this.switchableFeatureBuilder.allowProbabilisticFeatures();
+            return this;
+        }
+
         public T build() {
             return this.switchableFeatureBuilder.build();
         }
@@ -135,11 +150,13 @@ public class FeatureToggleFactory {
         private Class<? super T> commonInterface;
         private T defaultFeatureImpl;
         private LinkedHashMap<String, T> cases;
+        private boolean allowProbabilisticFeatures;
 
         public SwitchableFeatureBuilder(FeatureToggleConfiguration config, Class<? super T> commonInterface) {
             this.config = config;
             this.commonInterface = commonInterface;
             this.cases = new LinkedHashMap<String, T>(4);
+            this.allowProbabilisticFeatures = false;
         }
 
         public SwitchableFeatureBuilder<T> when(String featureName, T featureImpl) {
@@ -152,12 +169,17 @@ public class FeatureToggleFactory {
             return this;
         }
 
+        private SwitchableFeatureBuilder<T> allowProbabilisticFeatures() {
+            this.allowProbabilisticFeatures = true;
+            return this;
+        }
+
         public T build() {
             if (this.cases.isEmpty()) {
                 throw new IllegalStateException();
             }
 
-            FeatureToggleFactory featureToggleFactory = new FeatureToggleFactory(this.config);
+            FeatureToggleFactory featureToggleFactory = new FeatureToggleFactory(this.config, this.allowProbabilisticFeatures);
 
             T main = null;
             T next;

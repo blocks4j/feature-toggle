@@ -73,7 +73,7 @@ public class Feature<T> implements InvocationHandler {
         }
     }
 
-    private boolean isOn(Method method, Object[] args) {
+    protected boolean isOn(Method method, Object[] args) {
         if (this.isFeatureOnFeatureList()) {
             if (args != null) {
                 return this.paramters.isOn(method, args, this.featureName);
@@ -98,5 +98,9 @@ public class Feature<T> implements InvocationHandler {
 
     public T getFeatureOn() {
         return this.featureOn;
+    }
+
+    public FeatureToggleConfiguration getConfig() {
+        return this.config;
     }
 }
