@@ -43,6 +43,7 @@ public class FeatureToggleSteps {
     private TestingFeature featureImplementation;
 
     private FeatureToggleConfiguration featureConfig;
+    private int repetitions;
 
 
     @Before
@@ -60,19 +61,30 @@ public class FeatureToggleSteps {
     @Given("^the feature toggle called \"([^\"]*)\" switching between:$")
     public void theFeatureToggleCalledSwitchingBetween(String featureName, Map<String, String> featureOption) throws Throwable {
         this.featureImplementation = FeatureToggleFactory.<TestingFeature>forFeature(this.featureConfig,
-                                                                     featureName,
-                                                                     TestingFeature.class)
-                                                         .whenEnabled(this.features.get(featureOption.get("newFeature")))
-                                                         .whenDisabled(this.features.get(featureOption.get("originalFeature")))
-                                                         .build();
+                                                                                     featureName,
+                                                                                     TestingFeature.class)
+                .whenEnabled(this.features.get(featureOption.get("newFeature")))
+                .whenDisabled(this.features.get(featureOption.get("originalFeature")))
+                .build();
+    }
+
+    @Given("^the probability feature toggle called \"([^\"]*)\" switching between:$")
+    public void theProbabilityFeatureToggleCalledSwitchingBetween(String featureName, Map<String, String> featureOption) throws Throwable {
+        this.featureImplementation = FeatureToggleFactory.<TestingFeature>forFeature(this.featureConfig,
+                                                                                     featureName,
+                                                                                     TestingFeature.class)
+                .whenEnabled(this.features.get(featureOption.get("newFeature")))
+                .whenDisabled(this.features.get(featureOption.get("originalFeature")))
+                .allowProbabilisticFeatures()
+                .build();
     }
 
     @Given("^the Switchable feature toggle for alternative of the implementation called \"([^\"]*)\" and this cases:$")
     public void theSwitchableFeatureToggleForAlternativeOfTheImplementationCalledAndThisCases(String defaultImplementationName, List<Map<String, String>> implementations) throws Throwable {
         final FeatureToggleFactory.SwitchableFeatureBuilder<TestingFeature> testingFeatureSwitchableFeatureBuilder =
                 FeatureToggleFactory.<TestingFeature>forSwitchableFeaturesConfiguration(this.featureConfig,
-                                                                        TestingFeature.class)
-                                    .defaultFeature(this.features.get(defaultImplementationName));
+                                                                                        TestingFeature.class)
+                        .defaultFeature(this.features.get(defaultImplementationName));
 
         for (Map<String, String> feature : implementations) {
             testingFeatureSwitchableFeatureBuilder.when(feature.get("featureName"), this.features.get(feature.get("implementationName")));
@@ -131,6 +143,14 @@ public class FeatureToggleSteps {
         this.featureImplementation.operation(parameter);
     }
 
+    @When("^the service is called with primitive parameter \"([^\"]*)\" (\\d+) times$")
+    public void theServiceIsCalledWithPrimitiveParameterTimes(String parameter, int repetitions) throws Throwable {
+        this.repetitions = repetitions;
+        for (int i = 0; i < repetitions; i++) {
+            this.featureImplementation.operation(parameter);
+        }
+    }
+
     @Then("^the implementation of operation\\(OperationParameter\\) \"([^\"]*)\" will be used$")
     public void theImplementationWillBeUsed(final String usedImplementationName) throws Throwable {
         for (Map.Entry<String, TestingFeature> testingFeatureEntry : this.features.entrySet()) {
@@ -163,4 +183,15 @@ public class FeatureToggleSteps {
     }
 
 
+    @Then("^approximately (\\d+)% of requests will be for \"([^\"]*)\"$")
+    public void approximatelyOfRequestsWillBeFor(int percent, String featureName) throws Throwable {
+        TestingFeature feature = this.features.get(featureName);
+
+        int allowedError = (int) (this.repetitions * 0.01);
+
+        int expectedExecutionTimes = (int) (this.repetitions * ((double) percent / 100));
+
+        Mockito.verify(feature, Mockito.atLeast(expectedExecutionTimes - allowedError)).operation(Mockito.anyString());
+        Mockito.verify(feature, Mockito.atMost(expectedExecutionTimes + allowedError)).operation(Mockito.anyString());
+    }
 }

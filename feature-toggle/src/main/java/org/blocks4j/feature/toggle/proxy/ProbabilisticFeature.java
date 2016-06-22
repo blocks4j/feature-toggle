@@ -48,7 +48,7 @@ public class ProbabilisticFeature<T> extends Feature<T> {
             Matcher matcher = PROBABILISTIC_VALUE_PATTERN.matcher(probValue.iterator().next());
             if (matcher.find()) {
                 int accept = Integer.valueOf(matcher.group(1));
-                int total = Integer.valueOf(matcher.group(3));
+                int total = Integer.valueOf(matcher.group(2));
 
                 isOn = this.random.nextInt(total) < accept;
             }
