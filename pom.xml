@@ -16,7 +16,7 @@
     <groupId>org.blocks4j.feature.toggle</groupId>
     <artifactId>feature-toggle-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.4-SNAPSHOT</version>
     <name>Blocks4J's Feature Toggle Parent</name>
     <description>Blocks4J's Feature Toggle</description>
     <url>http://github.com/blocks4j/feature-toggle</url>
