@@ -17,6 +17,7 @@
 package org.blocks4j.feature.toggle.proxy;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -40,17 +41,23 @@ public class ProbabilisticFeature<T> extends Feature<T> {
     }
 
     private boolean probabilisticAssertion() {
-        boolean isOn = false;
+        boolean isOn = true;
 
-        Set<String> probValue = this.getConfig().getEnabledParameters().get(String.format(PROBABILISTIC_VALUE_PROPERTY_FORMAT, this.getFeatureName()));
+        Map<String, Set<String>> enabledParameters = this.getConfig().getEnabledParameters();
 
-        if (probValue.size() == 1) {
-            Matcher matcher = PROBABILISTIC_VALUE_PATTERN.matcher(probValue.iterator().next());
-            if (matcher.find()) {
-                int accept = Integer.valueOf(matcher.group(1));
-                int total = Integer.valueOf(matcher.group(2));
+        if (!enabledParameters.isEmpty()) {
+            Set<String> probValue = enabledParameters.get(String.format(PROBABILISTIC_VALUE_PROPERTY_FORMAT, this.getFeatureName()));
 
-                isOn = this.random.nextInt(total) < accept;
+            if (probValue.size() == 1) {
+                Matcher matcher = PROBABILISTIC_VALUE_PATTERN.matcher(probValue.iterator().next());
+                if (matcher.find()) {
+                    int accept = Integer.valueOf(matcher.group(1));
+                    int total = Integer.valueOf(matcher.group(2));
+
+                    isOn = this.random.nextInt(total) < accept;
+                }
+            } else if (probValue.size() > 1){
+                isOn = false;
             }
         }
 
