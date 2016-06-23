@@ -80,13 +80,21 @@ Feature: Feature Toggle Tests
       | feature2,feature3 | feature2&paramTestPrimitive=2                               | 1         | newImplementation_feature3 |
       | feature2,feature3 | feature2&paramTestPrimitive=2;feature3&paramTestPrimitive=3 | 1         | main                       |
 
-  Scenario: Probabilistic Feature
+  Scenario Template: Probabilistic Feature
     Given a implementation of this interface called "main" with parameter toggle called 'paramTest'
     And a implementation of this interface called "newImplementation" with parameter toggle called 'paramTest'
     And the probability feature toggle called "featureName" switching between:
       | originalFeature | main              |
       | newFeature      | newImplementation |
     And those features are in the featureNames at configuration "featureName"
-    And those features activates with those parameters "featureName#probability=3/10;paramTestPrimitive=1"
-    When the service is called with primitive parameter "1" 10000 times
-    Then approximately 30% of requests will be for "newImplementation"
+    And those features activates with those parameters "<featureParameters>"
+    When the service is called with primitive parameter "<parameter>" <repetitions> times
+    Then approximately <frequencyNewImplementation>% of requests will be for "newImplementation"
+
+    Examples:
+      | featureParameters                                   | parameter | repetitions | frequencyNewImplementation |
+      | featureName#probability=3/10;paramTestPrimitive=1   | 1         | 10000       | 30                         |
+      | paramTestPrimitive=1                                | 1         | 100         | 100                        |
+      | paramTestPrimitive=2                                | 1         | 100         | 0                          |
+      | featureName#probability=3/10,3;paramTestPrimitive=1 | 1         | 100         | 0                          |
+      | featureName#probability=;paramTestPrimitive=1       | 1         | 100         | 100                        |

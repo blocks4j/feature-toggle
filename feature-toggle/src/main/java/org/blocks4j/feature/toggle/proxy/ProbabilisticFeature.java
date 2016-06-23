@@ -47,17 +47,18 @@ public class ProbabilisticFeature<T> extends Feature<T> {
 
         if (!enabledParameters.isEmpty()) {
             Set<String> probValue = enabledParameters.get(String.format(PROBABILISTIC_VALUE_PROPERTY_FORMAT, this.getFeatureName()));
+            if (probValue != null) {
+                if (probValue.size() == 1) {
+                    Matcher matcher = PROBABILISTIC_VALUE_PATTERN.matcher(probValue.iterator().next());
+                    if (matcher.find()) {
+                        int accept = Integer.valueOf(matcher.group(1));
+                        int total = Integer.valueOf(matcher.group(2));
 
-            if (probValue.size() == 1) {
-                Matcher matcher = PROBABILISTIC_VALUE_PATTERN.matcher(probValue.iterator().next());
-                if (matcher.find()) {
-                    int accept = Integer.valueOf(matcher.group(1));
-                    int total = Integer.valueOf(matcher.group(2));
-
-                    isOn = this.random.nextInt(total) < accept;
+                        isOn = this.random.nextInt(total) < accept;
+                    }
+                } else if (probValue.size() > 1) {
+                    isOn = false;
                 }
-            } else if (probValue.size() > 1){
-                isOn = false;
             }
         }
 

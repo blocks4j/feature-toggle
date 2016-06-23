@@ -191,7 +191,7 @@ public class FeatureToggleSteps {
 
         int expectedExecutionTimes = (int) (this.repetitions * ((double) percent / 100));
 
-        Mockito.verify(feature, Mockito.atLeast(expectedExecutionTimes - allowedError)).operation(Mockito.anyString());
+        Mockito.verify(feature, Mockito.atLeast(Math.max(expectedExecutionTimes - allowedError, 0))).operation(Mockito.anyString());
         Mockito.verify(feature, Mockito.atMost(expectedExecutionTimes + allowedError)).operation(Mockito.anyString());
     }
 }
